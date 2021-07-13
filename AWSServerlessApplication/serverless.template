@@ -73,7 +73,7 @@
         }
       }
     },
-        "ContentBucket": {
+    "ContentBucket": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
         "BucketName": {
@@ -118,6 +118,48 @@
               "Principal": "*"
             }
           ]
+        }
+      }
+    },
+    "UsersTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": {
+          "Fn::If": [
+            "TablePrefixGenerated",
+            {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "TableNamePrefix"
+                  },
+                  "users"
+                ]
+              ]
+            },
+            "users"
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "Id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "Id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": {
+            "Ref": "ReadCapacity"
+          },
+          "WriteCapacityUnits": {
+            "Ref": "WriteCapacity"
+          }
         }
       }
     }
