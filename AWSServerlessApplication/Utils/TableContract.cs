@@ -13,11 +13,6 @@ namespace AWSServerlessApplication.Utils
         public static string Email = "email";
         public static string ConfirmedAt = "confirmedAt";
         public static string Image = "image";
-        public static string JobTitleId = "jobTitleId";
-        public static string HourlyCost = "hourlyCost";
-        public static string SeniorSkillsIds = "seniorSkillsIds";
-        public static string IntermediateSkillsIds = "intermediateSkillsIds";
-        public static string JuniorSkillsIds = "juniorSkillsIds";
         public static string Deleted = "deleted";
     }
     public struct Constants

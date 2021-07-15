@@ -7,7 +7,6 @@ namespace AWSServerlessApplication.Models
 {
     public class User:DynamoDBUser
     {
-        public string Token { get; set; }
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
     }
