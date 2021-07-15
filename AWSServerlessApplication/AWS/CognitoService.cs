@@ -33,7 +33,7 @@ namespace AWSServerlessApplication.AWS
             {
                 UserPoolId = _appSettings.UserPoolId,
                 Username = email,
-                TemporaryPassword = PasswordUtils.Generate(email),
+                TemporaryPassword = PasswordUtils.Generate(),
                 UserAttributes = new List<AttributeType>
                 {
                     new AttributeType { Name = "email", Value = email },
