@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Amazon.CognitoIdentityProvider.Model;
+using AutoMapper;
 using AWSServerlessApplication.Authentication;
 using AWSServerlessApplication.AWS;
 using AWSServerlessApplication.Dto;
@@ -21,14 +23,16 @@ namespace AWSServerlessApplication.Controllers
         private readonly IUsersService _userService;
         private readonly ICognitoService _cognitoService;
         private readonly IOptions<AppSettings> _options;
+        private readonly IMapper _mapper;
         public UsersController(IUsersService userService,
             ICognitoService cognitoService,
-            IOptions<AppSettings> options) 
+            IOptions<AppSettings> options,
+            IMapper mapper)
         {
             _userService = userService;
             _cognitoService = cognitoService;
             _options = options;
-           // _mapper = mapper;
+            _mapper = mapper;
         }
 
         ///<summary>
@@ -40,7 +44,21 @@ namespace AWSServerlessApplication.Controllers
         [HttpPost("signIn")]
         public async Task<ActionResult<UserDto>> SignInAsync(Credentials credentials)
         {
-            return Ok();
+            if (string.IsNullOrEmpty(credentials.Email) ||
+                string.IsNullOrEmpty(credentials.Password)) return Unauthorized();
+
+            var cognitoAuth = new CognitoAuthentication(_options);
+            var result = await cognitoAuth.SignInAsync(credentials);
+
+            if (!result.Success)
+                return Unauthorized();
+
+            var user = await _userService.GetAsync(result.Username);
+            user.Token = result.CognitoToken.IdToken;
+            user.AccessToken = result.CognitoToken.AccessToken;
+            user.RefreshToken = result.CognitoToken.RefreshToken;
+
+            return Ok(user);
         }
 
         ///<summary>
@@ -53,7 +71,14 @@ namespace AWSServerlessApplication.Controllers
         [HttpPut("setPassword")]
         public async Task<ActionResult<UserDto>> SetPasswordAsync(Credentials credentials)
         {
-            return Ok();
+            if (string.IsNullOrEmpty(credentials.Password)) return Unauthorized();
+
+            var user = await _userService.SetPasswordAsync(credentials);
+
+            if (user == null)
+                return BadRequest();
+            var response = _mapper.Map<UserDto>(user);
+            return Ok(response);
         }
         ///<summary>
         /// Get a user 
@@ -65,7 +90,13 @@ namespace AWSServerlessApplication.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto>> GetAsync(string id)
         {
-            return Ok();
+            var user = await _userService.GetAsync(id);
+
+            if (user == null)
+                return NotFound();
+
+            var response = _mapper.Map<UserDto>(user);
+            return Ok(response);
         }
 
         ///<summary>
@@ -90,7 +121,18 @@ namespace AWSServerlessApplication.Controllers
         [HttpPost]
         public async Task<ActionResult<UserDto>> CreateAsync(CreateModifyUserRequest userRequest)
         {
-            return Ok();
+            if (string.IsNullOrEmpty(userRequest.Email) ||
+               string.IsNullOrEmpty(userRequest.Name) ||
+               string.IsNullOrEmpty(userRequest.Surname)) return BadRequest();
+
+            var data = await _userService.CreateAsync(_mapper.Map<DynamoDBUser>(userRequest));
+
+            if (data == null)
+                return BadRequest();
+
+            var response = _mapper.Map<UserDto>(data);
+            return Ok(response);
+
         }
 
         ///<summary>
@@ -104,7 +146,14 @@ namespace AWSServerlessApplication.Controllers
         [Route("{id}")]
         public async Task<ActionResult<UserDto>> Update(string id, [FromBody] CreateModifyUserRequest userRequest)
         {
-            return Ok();
+            userRequest.Id = id;
+            var data = await _userService.UpdateAsync(_mapper.Map<DynamoDBUser>(userRequest));
+
+            if (data == null)
+                return BadRequest();
+
+            var response = _mapper.Map<UserDto>(data);
+            return Ok(response);
         }
 
 
@@ -119,7 +168,19 @@ namespace AWSServerlessApplication.Controllers
         [Route("forgotPassword/{email}")]
         public async Task<IActionResult> InitForgotPassword(string email)
         {
-            return Ok();
+            try
+            {
+                await _cognitoService.InitForgotPasswordAsync(email);
+                return Ok();
+            }
+            catch (UserNotConfirmedException)
+            {
+                return NotFound(new { Message = $"User {email} not confirmed" });
+            }
+            catch (UserNotFoundException)
+            {
+                return NotFound(new { Message = $"User {email} not found" });
+            }
         }
 
         ///<summary>
@@ -132,6 +193,7 @@ namespace AWSServerlessApplication.Controllers
         [Route("resetPassword")]
         public async Task<IActionResult> ResetPassword([FromBody] Models.ForgotPasswordRequest request)
         {
+            await _cognitoService.ChangeForgottenPassword(request);
             return Ok();
         }
 
@@ -147,7 +209,19 @@ namespace AWSServerlessApplication.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            return Ok();
+            var user = await _userService.GetAsync(id);
+            if (user != null)
+            {
+                await _cognitoService.AdminDisableUserAsync(user.Email);
+                var result = await _userService.DeleteAsync(id);
+
+                if (!result)
+                    return BadRequest();
+
+                return Ok();
+            }
+            else
+                return BadRequest();
         }
 
     }
