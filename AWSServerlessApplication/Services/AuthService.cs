@@ -8,10 +8,6 @@ namespace AWSServerlessApplication.Services
     {
         public DynamoDBUser AuthUser { get; private set; }
 
-        public AuthService()
-        {
-        }
-
         public void Init(DynamoDBUser user)
         {
             AuthUser = user;
