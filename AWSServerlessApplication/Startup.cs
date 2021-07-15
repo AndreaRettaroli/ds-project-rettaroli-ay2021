@@ -31,7 +31,7 @@ namespace AWSServerlessApplication
             services.AddControllers(); 
             services.ConfigureAWSServices();
             services.ConfigureAuthentication(Configuration);
-            //services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.ConfigureApplicationServices();
             //services.ConfigureHttpClients(Configuration);
             services.Configure<AppSettings>(Configuration);
