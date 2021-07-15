@@ -7,9 +7,11 @@ namespace AWSServerlessApplication.Utils
 {
     public class PasswordUtils
     {
-        internal static string Generate(string email)
+        public static string Generate()
         {
-            throw new NotImplementedException();
+            long ticks = DateTime.Now.Ticks;
+            byte[] bytes = BitConverter.GetBytes(ticks);
+            return Convert.ToBase64String(bytes).Replace('+', '_').Replace('/', '-');
         }
     }
 }
