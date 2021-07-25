@@ -53,7 +53,9 @@
         "Timeout": 30,
         "Role": null,
         "Policies": [
-          "AWSLambda_FullAccess"
+          "AWSLambda_FullAccess",
+          "AmazonCognitoPowerUser",
+          "AmazonDynamoDBFullAccess"
         ],
         "Events": {
           "ProxyResource": {
@@ -68,6 +70,40 @@
             "Properties": {
               "Path": "/",
               "Method": "ANY"
+            }
+          }
+        }
+      }
+    },
+    "CognitoCustomMessagesFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Join": [
+            "-",
+            [
+              "sd",
+              {
+                "Ref": "Environment"
+              },
+              "CognitoCustomMessagesFunction"
+            ]
+          ]
+        },
+        "Handler": "AWSServerlessApplication::AWS.Lambda.CognitoCustomMessagesFunction::Handler",
+        "Runtime": "dotnetcore3.1",
+        "CodeUri": "",
+        "MemorySize": 3008,
+        "Timeout": 900,
+        "Role": null,
+        "Policies": [
+          "AWSLambda_FullAccess",
+          "AWSLambdaVPCAccessExecutionRole"
+        ],
+        "Environment": {
+          "Variables": {
+            "ContentBucketName": {
+              "Ref": "ContentBucket"
             }
           }
         }
