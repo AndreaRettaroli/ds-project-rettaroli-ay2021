@@ -38,8 +38,10 @@ namespace AWSServerlessApplication.Services
                 await _dynamoDB.PutItemAsync(request);
                 return request.Item.ToDynamoDBUser().ToUser();
             }
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
                 return null;
             }
         }
@@ -101,7 +103,7 @@ namespace AWSServerlessApplication.Services
                 var currentUser = await GetAsync(user.Id);
                 if (currentUser == null || currentUser.Deleted != null)
                     return null;
-
+                user.FillUpdate(currentUser);
                 var request = UserRequest.Insert(user);
                 await _dynamoDB.PutItemAsync(request);
                 return request.Item.ToDynamoDBUser().ToUser();

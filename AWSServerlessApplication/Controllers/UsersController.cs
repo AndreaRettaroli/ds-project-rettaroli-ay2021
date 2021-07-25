@@ -77,6 +77,8 @@ namespace AWSServerlessApplication.Controllers
 
             if (user == null)
                 return BadRequest();
+            if (user.Deleted != null)
+                return NotFound();
             var response = _mapper.Map<UserDto>(user);
             return Ok(response);
         }
@@ -92,7 +94,7 @@ namespace AWSServerlessApplication.Controllers
         {
             var user = await _userService.GetAsync(id);
 
-            if (user == null)
+            if (user == null||user.Deleted!=null)
                 return NotFound();
 
             var response = _mapper.Map<UserDto>(user);
@@ -119,19 +121,26 @@ namespace AWSServerlessApplication.Controllers
         /// <response code="400">Bad Request</response> 
         /// <response code="401">Unauthorized</response>
         [HttpPost]
-        public async Task<ActionResult<UserDto>> CreateAsync(CreateModifyUserRequest userRequest)
+        public async Task<ActionResult<UserDto>> CreateAsync(CreateUserRequest userRequest)
         {
-            if (string.IsNullOrEmpty(userRequest.Email) ||
-               string.IsNullOrEmpty(userRequest.Name) ||
-               string.IsNullOrEmpty(userRequest.Surname)) return BadRequest();
+            try
+            {
+                if (string.IsNullOrEmpty(userRequest.Email) ||
+                   string.IsNullOrEmpty(userRequest.Name) ||
+                   string.IsNullOrEmpty(userRequest.Surname)) return BadRequest();
 
-            var data = await _userService.CreateAsync(_mapper.Map<DynamoDBUser>(userRequest));
+                var data = await _userService.CreateAsync(_mapper.Map<DynamoDBUser>(userRequest));
 
-            if (data == null)
-                return BadRequest();
+                if (data == null)
+                    return BadRequest();
 
-            var response = _mapper.Map<UserDto>(data);
-            return Ok(response);
+                var response = _mapper.Map<UserDto>(data);
+                return Ok(response);
+            }
+            catch (UsernameExistsException)
+            {
+                return Conflict();
+            }
 
         }
 
@@ -144,7 +153,7 @@ namespace AWSServerlessApplication.Controllers
         [Authorize]
         [HttpPut]
         [Route("{id}")]
-        public async Task<ActionResult<UserDto>> Update(string id, [FromBody] CreateModifyUserRequest userRequest)
+        public async Task<ActionResult<UserDto>> Update(string id, [FromBody] ModifyUserRequest userRequest)
         {
             userRequest.Id = id;
             var data = await _userService.UpdateAsync(_mapper.Map<DynamoDBUser>(userRequest));

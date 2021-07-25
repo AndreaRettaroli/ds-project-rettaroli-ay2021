@@ -15,8 +15,8 @@ namespace AWSServerlessApplication.Profiles
         private void MapUser()
         {
             CreateMap<User, UserDto>().ReverseMap();
-            CreateMap<DynamoDBUser, CreateModifyUserRequest>().ReverseMap()
-           .ForMember(b => b.Id, opt => opt.MapFrom(src => src.Id));
+            CreateMap<DynamoDBUser, CreateUserRequest>().ReverseMap();
+            CreateMap<DynamoDBUser, ModifyUserRequest>().ReverseMap();
         }
     }
 }

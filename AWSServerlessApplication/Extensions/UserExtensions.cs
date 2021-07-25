@@ -34,6 +34,7 @@ namespace AWSServerlessApplication.Extensions
             item.Add(UsersTable.Surname, new AttributeValue(user.Surname), condition: !string.IsNullOrEmpty(user.Surname));
             item.Add(UsersTable.Email, new AttributeValue(user.Email), condition: !string.IsNullOrEmpty(user.Email));
             item.Add(UsersTable.DisplayName, new AttributeValue(user.Name.ToLower() + "_" + user.Surname.ToLower()), condition: !string.IsNullOrEmpty(user.Name) && !string.IsNullOrEmpty(user.Surname));
+            item.Add(UsersTable.ConfirmedAt, new AttributeValue(user.ConfirmedAt.ToString()), condition: !string.IsNullOrEmpty(user.ConfirmedAt.ToString()));
             item.Add(UsersTable.Image, new AttributeValue(user.ImageUrl), condition: !string.IsNullOrEmpty(user.ImageUrl));
             item.Add(UsersTable.Deleted, new AttributeValue(user.Deleted.ToString()), condition: user.Deleted != null);
 
@@ -46,9 +47,15 @@ namespace AWSServerlessApplication.Extensions
             Name = dynamoDBuser.Name,
             Surname = dynamoDBuser.Surname,
             Email = dynamoDBuser.Email,
+            DisplayName=dynamoDBuser.DisplayName,
             ConfirmedAt = dynamoDBuser.ConfirmedAt,
             ImageUrl = dynamoDBuser.ImageUrl,
             Deleted = dynamoDBuser.Deleted,
         };
+        public static void FillUpdate(this DynamoDBUser newUser,User currentUser)
+        {
+            newUser.ConfirmedAt = currentUser.ConfirmedAt;
+            newUser.Email = currentUser.Email;
+        }
     }
 }
