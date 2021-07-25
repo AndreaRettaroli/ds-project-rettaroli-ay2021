@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace AWSServerlessApplication.AWS.Lambda
+namespace AWS.Lambda
 {
     public class CognitoCustomMessageRequest
     {
