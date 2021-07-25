@@ -33,7 +33,6 @@ namespace AWSServerlessApplication
             services.ConfigureAuthentication(Configuration);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.ConfigureApplicationServices();
-            //services.ConfigureHttpClients(Configuration);
             services.Configure<AppSettings>(Configuration);
 
             services.AddSwaggerGen();
