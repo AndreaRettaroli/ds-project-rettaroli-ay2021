@@ -28,6 +28,7 @@ namespace AWSServerlessApplication.Helpers
 
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
+
             var jwtManager = new JwtBearerManager(
                 userPoolId: configuration["UserPoolId"],
                 audiences: new[] { configuration["UserPoolClientId"] });
@@ -52,13 +53,5 @@ namespace AWSServerlessApplication.Helpers
             services.AddScoped<IUsersService, UsersService>();
 
         }
-
-        //public static void ConfigureHttpClients(this IServiceCollection services, IConfiguration configuration)
-        //{
-        //    services.AddHttpClient<IProjectsService, ProjectsService>(c =>
-        //    {
-        //        c.BaseAddress = new Uri(configuration["ProjectServiceBaseAddress"]);
-        //    });
-        //}
     }
 }
