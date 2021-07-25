@@ -11,7 +11,7 @@ namespace AWSServerlessApplication.Utils
         {
             long ticks = DateTime.Now.Ticks;
             byte[] bytes = BitConverter.GetBytes(ticks);
-            return Convert.ToBase64String(bytes).Replace('+', '_').Replace('/', '-');
+            return "-"+Convert.ToBase64String(bytes).Replace('+', '_').Replace('/', '-');
         }
     }
 }
