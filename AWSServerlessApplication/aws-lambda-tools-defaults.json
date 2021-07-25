@@ -14,5 +14,5 @@
     "template"      : "serverless.template",
     "template-parameters" : "\"Environment\"=\"dev\";\"TableNamePrefix\"=\"dev_\";\"ReadCapacity\"=\"3\";\"WriteCapacity\"=\"3\"",
     "stack-name"          : "aws-serverless-user-service-dev",
-    "s3-bucket"           : "aws-serverless-app-dev-content"
+    "s3-bucket"           : "sd-aws-serverless-app-dev-content"
 }
