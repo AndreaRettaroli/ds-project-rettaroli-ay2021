@@ -15,7 +15,7 @@ namespace AWSServerlessApplication.AWS
         public S3Service(IAmazonS3 s3)
         {
             _s3 = s3;
-            _bucketName = " ";//TODO:creare backet
+            _bucketName = "sd-aws-serverless-app-dev-content";
 
         }
         public S3Service(IAmazonS3 s3, string bucketName)
