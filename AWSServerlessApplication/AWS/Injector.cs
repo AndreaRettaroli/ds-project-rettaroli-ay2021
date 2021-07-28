@@ -22,6 +22,10 @@ namespace AWSServerlessApplication.AWS
         {
             return new AmazonS3Client(region);
         }
+        public IAmazonDynamoDB CreateDynamoDB()
+        {
+            return new AmazonDynamoDBClient(region);
+        }
 
     }
 }
