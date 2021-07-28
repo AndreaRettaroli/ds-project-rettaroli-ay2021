@@ -1,0 +1,247 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "An AWS Serverless Application that uses the ASP.NET Core framework running in Amazon Lambda.",
+  "Parameters": {
+      "Environment": {
+      "Type": "String",
+      "Description": "The app enviroment for resources naming (dev, test, prod).",
+      "AllowedValues": [
+        "dev"
+      ]
+    },
+      "TableNamePrefix": {
+      "Type": "String",
+      "Description": "The prefix for each DynamoDB table name.",
+      "MinLength": "0"
+    },
+      "ReadCapacity": {
+      "Type": "Number",
+      "Description": "Read capacity for the DynamoDB users tables.",
+      "Default": "3",
+      "MinValue": 1
+    },
+      "WriteCapacity": {
+      "Type": "Number",
+      "Description": "Write capacity for the DynamoDB tables.",
+      "Default": "3",
+      "MinValue": 1
+    }
+  },
+  "Conditions": {
+    "TablePrefixGenerated": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "TableNamePrefix"
+            },
+            ""
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "AspNetCoreFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerlessApplication::AWSServerlessApplication.LambdaEntryPoint::FunctionHandlerAsync",
+        "Runtime": "dotnetcore3.1",
+        "CodeUri": "",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [
+          "AWSLambda_FullAccess",
+          "AmazonCognitoPowerUser",
+          "AmazonDynamoDBFullAccess"
+        ],
+        "Events": {
+          "ProxyResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/{proxy+}",
+              "Method": "ANY"
+            }
+          },
+          "RootResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/",
+              "Method": "ANY"
+            }
+          }
+        }
+      }
+    },
+    "CognitoCustomMessagesFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Join": [
+            "-",
+            [
+              "sd",
+              {
+                "Ref": "Environment"
+              },
+              "CognitoCustomMessagesFunction"
+            ]
+          ]
+        },
+        "Handler": "AWSServerlessApplication::AWS.Lambda.CognitoCustomMessagesFunction::Handler",
+        "Runtime": "dotnetcore3.1",
+        "CodeUri": "",
+        "MemorySize": 3008,
+        "Timeout": 900,
+        "Role": null,
+        "Policies": [
+          "AWSLambda_FullAccess",
+          "AWSLambdaVPCAccessExecutionRole"
+        ],
+        "Environment": {
+          "Variables": {
+            "ContentBucketName": {
+              "Ref": "ContentBucket"
+            }
+          }
+        }
+      }
+    },
+     "GetUsersLambdaFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Join": [
+            "-",
+            [
+              "sd",
+              {
+                "Ref": "Environment"
+              },
+              "GetUsersLambdaFunction"
+            ]
+          ]
+        },
+        "Handler": "AWSServerlessApplication::AWS.Lambda.GetUsersLambdaFunction::HandlerAsync",
+        "Runtime": "dotnetcore3.1",
+        "CodeUri": "",
+        "MemorySize": 3008,
+        "Timeout": 900,
+        "Role": null,
+        "Policies": [
+          "AWSLambda_FullAccess",
+          "AWSLambdaVPCAccessExecutionRole",
+          "AmazonDynamoDBFullAccess"
+        ],
+        "Environment": {
+          "Variables": {
+            "ContentBucketName": {
+              "Ref": "ContentBucket"
+            }
+          }
+        }
+      }
+    },
+    "ContentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "-",
+            [
+              "sd-aws-serverless-app",
+              {
+                "Ref": "Environment"
+              },
+              "content"
+            ]
+          ]
+        }
+      }
+    },
+    "BucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "ContentBucket"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "ContentBucket"
+                    },
+                    "/*"
+                  ]
+                ]
+              },
+              "Principal": "*"
+            }
+          ]
+        }
+      }
+    },
+    "UsersTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": {
+          "Fn::If": [
+            "TablePrefixGenerated",
+            {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "TableNamePrefix"
+                  },
+                  "users"
+                ]
+              ]
+            },
+            "users"
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "Id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "Id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": {
+            "Ref": "ReadCapacity"
+          },
+          "WriteCapacityUnits": {
+            "Ref": "WriteCapacity"
+          }
+        }
+      }
+    }
+  },
+
+  "Outputs": {
+    "ApiURL": {
+      "Description": "API endpoint URL for Prod environment",
+      "Value": {
+        "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+      }
+    }
+  }
+}
