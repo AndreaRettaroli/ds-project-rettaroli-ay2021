@@ -35,6 +35,7 @@ namespace AWSServerlessApplication
             services.ConfigureApplicationServices();
             services.Configure<AppSettings>(Configuration);
 
+
             services.AddSwaggerGen();
             services.AddSwaggerGen(s =>
             {
@@ -85,9 +86,9 @@ namespace AWSServerlessApplication
                 app.UseDeveloperExceptionPage();
             }
             app.UseRouting();
+            app.ConfigureCors();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.ConfigureCors();
             app.UseHttpsRedirection();
             app.ConfigureEndpoints();
         }

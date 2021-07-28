@@ -7,9 +7,10 @@ namespace AWSServerlessApplication.Helpers
     {
         public static void ConfigureCors(this IApplicationBuilder app)
         {
+           
             app
             .UseCors(builder => builder
-            .SetIsOriginAllowed(origin => true)
+            .SetIsOriginAllowed(origin => true)   
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
