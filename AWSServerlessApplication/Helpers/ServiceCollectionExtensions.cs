@@ -1,6 +1,7 @@
 using System;
 using Amazon.CognitoIdentityProvider;
 using Amazon.DynamoDBv2;
+using Amazon.Lambda;
 using Amazon.S3;
 using AWSServerlessApplication.Authentication;
 using AWSServerlessApplication.AWS;
@@ -43,6 +44,7 @@ namespace AWSServerlessApplication.Helpers
             services.AddAWSService<IAmazonCognitoIdentityProvider>();
             services.AddAWSService<IAmazonDynamoDB>();
             services.AddAWSService<IAmazonS3>();
+            services.AddAWSService<IAmazonLambda>();
         }
 
         public static void ConfigureApplicationServices(this IServiceCollection services)
