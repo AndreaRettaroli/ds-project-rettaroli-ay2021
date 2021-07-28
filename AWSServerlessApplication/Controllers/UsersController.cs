@@ -11,6 +11,7 @@ using AWSServerlessApplication.Models;
 using AWSServerlessApplication.Services.Interfaces;
 using AWSServerlessApplication.Utils;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -18,6 +19,7 @@ namespace AWSServerlessApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class UsersController : ControllerBase
     {
         private readonly IUsersService _userService;
@@ -94,7 +96,7 @@ namespace AWSServerlessApplication.Controllers
         {
             var user = await _userService.GetAsync(id);
 
-            if (user == null||user.Deleted!=null)
+            if (user == null || user.Deleted != null)
                 return NotFound();
 
             var response = _mapper.Map<UserDto>(user);
@@ -111,7 +113,17 @@ namespace AWSServerlessApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<List<UserDto>>> ListAsync()
         {
-            return Ok();
+            List<UserDto> users = new List<UserDto>();
+            var data = await _userService.ListAsync();
+            if (data.Count == 0)
+                return NotFound();
+
+            data.ForEach(u =>
+            {
+               var user= _mapper.Map<UserDto>(u);
+                users.Add(user);
+            });
+            return users;
         }
 
         ///<summary>
