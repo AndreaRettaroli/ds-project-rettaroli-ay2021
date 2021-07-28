@@ -10,7 +10,7 @@ namespace AWSServerlessApplication.Services.Interfaces
     public interface IUsersService
     {
         Task<User> GetAsync(string id);
-        Task<IEnumerable<User>> ListAsync();
+        Task<List<User>> ListAsync();
         Task<User> CreateAsync(DynamoDBUser userRequest);
         Task<User> UpdateAsync(DynamoDBUser userRequest);
         Task<User> SetPasswordAsync(Credentials credentials);

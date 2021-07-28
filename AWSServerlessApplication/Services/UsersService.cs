@@ -8,7 +8,11 @@ using AWSServerlessApplication.Services.Interfaces;
 using AWSServerlessApplication.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Amazon.Lambda.Model;
+using Amazon.Lambda;
+using System.Text.Json;
 
 namespace AWSServerlessApplication.Services
 {
@@ -17,14 +21,18 @@ namespace AWSServerlessApplication.Services
         private readonly IAuthService _authService;
         private readonly ICognitoService _cognito;
         private readonly IAmazonDynamoDB _dynamoDB;
+        private readonly IAmazonLambda _amazonLambda;
+
         private readonly string _tableName;
         public UsersService(IAuthService authService,
             IAmazonDynamoDB dynamoDB,
-            ICognitoService cognito)
+            ICognitoService cognito,
+            IAmazonLambda amazonLambda)
         {
             _authService = authService;
             _dynamoDB = dynamoDB;
             _cognito = cognito;
+            _amazonLambda = amazonLambda;
             _tableName = UsersTable.TableName;
 
         }
@@ -73,9 +81,18 @@ namespace AWSServerlessApplication.Services
             }
         }
 
-        public Task<IEnumerable<User>> ListAsync()
+        public async Task<List<User>> ListAsync()
         {
-            throw new System.NotImplementedException();
+            var response= await _amazonLambda.InvokeAsync(new InvokeRequest
+            {
+              FunctionName = "sd-dev-GetUsersLambdaFunction",
+
+            });
+            var users = await JsonSerializer.DeserializeAsync<List<User>>(response.Payload);
+            if (users.Count > 0)
+                return users;
+            return new List<User>();
+                          
         }
 
         public async Task<User> SetPasswordAsync(Credentials credentials)
