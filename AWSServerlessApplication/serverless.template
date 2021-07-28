@@ -109,6 +109,41 @@
         }
       }
     },
+     "GetUsersLambdaFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Join": [
+            "-",
+            [
+              "sd",
+              {
+                "Ref": "Environment"
+              },
+              "GetUsersLambdaFunction"
+            ]
+          ]
+        },
+        "Handler": "AWSServerlessApplication::AWS.Lambda.GetUsersLambdaFunction::HandlerAsync",
+        "Runtime": "dotnetcore3.1",
+        "CodeUri": "",
+        "MemorySize": 3008,
+        "Timeout": 900,
+        "Role": null,
+        "Policies": [
+          "AWSLambda_FullAccess",
+          "AWSLambdaVPCAccessExecutionRole",
+          "AmazonDynamoDBFullAccess"
+        ],
+        "Environment": {
+          "Variables": {
+            "ContentBucketName": {
+              "Ref": "ContentBucket"
+            }
+          }
+        }
+      }
+    },
     "ContentBucket": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
