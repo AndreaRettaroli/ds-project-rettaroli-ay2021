@@ -83,16 +83,22 @@ namespace AWSServerlessApplication.Services
 
         public async Task<List<User>> ListAsync()
         {
-            var response= await _amazonLambda.InvokeAsync(new InvokeRequest
+            try
             {
-              FunctionName = "sd-dev-GetUsersLambdaFunction",
+                var response = await _amazonLambda.InvokeAsync(new InvokeRequest
+                {
+                    FunctionName = "sd-dev-GetUsersLambdaFunction",
 
-            });
-            var users = await JsonSerializer.DeserializeAsync<List<User>>(response.Payload);
-            if (users.Count > 0)
-                return users;
-            return new List<User>();
-                          
+                });
+                var users = await JsonSerializer.DeserializeAsync<List<User>>(response.Payload);
+                if (users.Count > 0)
+                    return users;
+                return new List<User>();
+            }
+            catch
+            {
+                return new List<User>();
+            }              
         }
 
         public async Task<User> SetPasswordAsync(Credentials credentials)
